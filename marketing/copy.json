@@ -1,0 +1,68 @@
+{
+  "format": "1080x1080",
+  "generation": "Built-in image generation",
+  "ads": [
+    {
+      "key": "01-tempo",
+      "headline": "Pare de procurar. Tenha seu acervo do Opala.",
+      "message": "Quem tem Opala sabe: às vezes, o que mais demora não é o serviço. É encontrar a informação certa.\n\nUm diagrama aqui, um manual ali, uma dúvida que vira horas de busca…\n\nO Código do Opala Raiz reúne e-book, catálogo de peças, manuais de oficina e do proprietário, checklists e planilha de manutenção em um só lugar.\n\nMais praticidade para consultar, planejar e cuidar do seu clássico.\n\nConheça o acervo digital e veja tudo o que está incluído.",
+      "description": "Acervo 100% digital • Acesso imediato e vitalício"
+    },
+    {
+      "key": "02-pecas",
+      "headline": "Consulte antes de comprar a peça.",
+      "message": "Antes de comprar uma peça para o Opala, uma boa referência pode fazer diferença.\n\nO Código do Opala Raiz inclui um catálogo de peças com 449 páginas, além de manuais e informações técnicas para consultar códigos, aplicações e detalhes do carro.\n\nUm acervo organizado para ajudar você a pesquisar com mais critério e reduzir decisões no improviso.\n\nIdeal para donos, mecânicos e restauradores de Opala.\n\nClique e conheça todos os materiais.",
+      "description": "Catálogo de peças, manuais e ferramentas práticas"
+    },
+    {
+      "key": "03-mecanico",
+      "headline": "Referência técnica para quem trabalha com Opala.",
+      "message": "Trabalha com Opala? Ter a informação técnica à mão ajuda a organizar o próximo serviço.\n\nReúna suas referências em um só acesso: manuais de oficina, informações sobre motores GM151 e GM250, catálogo de peças e materiais de apoio à manutenção.\n\nO Código do Opala Raiz também inclui checklists e uma planilha para acompanhar cuidados e gastos.\n\nConheça o acervo digital feito para quem coloca a mão na massa.",
+      "description": "Manuais de oficina + catálogo + checklists"
+    },
+    {
+      "key": "04-paixao",
+      "headline": "Conhecimento para preservar seu clássico.",
+      "message": "Para quem tem Opala, cuidar do carro também é preservar uma história.\n\nCada revisão, cada detalhe e cada escolha merecem atenção — e boas referências.\n\nO Código do Opala Raiz reúne materiais para conhecer melhor seu clássico, organizar a manutenção e apoiar seu projeto de restauração.\n\nE-book com 138 páginas, manuais, catálogo de peças, checklists e planilha, com acesso imediato e vitalício.\n\nVeja o que faz parte desse acervo.",
+      "description": "Um acervo dedicado à sua paixão pelo Opala"
+    },
+    {
+      "key": "05-acervo",
+      "headline": "O conhecimento do Opala, em um só lugar.",
+      "message": "Um acervo completo para quem quer conhecer, manter ou restaurar um Opala.\n\nNo Código do Opala Raiz, você recebe:\n• E-book principal com 138 páginas;\n• Catálogo de peças com 449 páginas;\n• 2 manuais de oficina;\n• Manuais do proprietário de 1978, 1988 e 1992;\n• 8 checklists premium;\n• Planilha de manutenção e gastos.\n\nTudo digital, organizado e com acesso vitalício.\n\nClique em Saiba mais e conheça os materiais.",
+      "description": "6 tipos de materiais • Acesso imediato e vitalício"
+    }
+  ],
+  "briefs": [
+    {
+      "key": "01-tempo",
+      "text": "PARE DE PROCURAR. COMECE A CUIDAR.",
+      "sub": "Manuais, catálogos e ferramentas do Opala em um só lugar.",
+      "scene": "black classic Brazilian Chevrolet Opala in warm workshop, scattered technical documents transforming visually into neatly organized premium digital collection, clear product advertising composition"
+    },
+    {
+      "key": "02-pecas",
+      "text": "A PEÇA CERTA COMEÇA COM A INFORMAÇÃO CERTA.",
+      "sub": "Catálogo de peças + manuais para consultar antes de comprar.",
+      "scene": "close-up of classic Opala chrome front with mechanical components and an open blue white technical parts catalog, warm workshop, crisp professional automotive editorial"
+    },
+    {
+      "key": "03-mecanico",
+      "text": "QUEM TRABALHA COM OPALA PRECISA DE BOA REFERÊNCIA.",
+      "sub": "Manuais de oficina, diagramas e informações técnicas à mão.",
+      "scene": "professional mechanic in black t-shirt next to open hood classic Chevrolet Opala, consulting a tablet with technical diagrams, authentic dark garage, trustworthy no posed smile"
+    },
+    {
+      "key": "04-paixao",
+      "text": "SEU OPALA MERECE MAIS DO QUE IMPROVISO.",
+      "sub": "Conhecimento para manter, restaurar e preservar seu clássico.",
+      "scene": "beautiful restored black Brazilian classic Chevrolet Opala at sunset in garage doorway, emotional premium collectors automotive photography, elegant chrome details"
+    },
+    {
+      "key": "05-acervo",
+      "text": "O ACERVO QUE TODO APAIXONADO POR OPALA QUER TER.",
+      "sub": "E-book • Catálogo de peças • Manuais • Checklists • Planilha",
+      "scene": "premium product mockups of black and orange ebook O CÓDIGO DO OPALA RAIZ, blue white parts catalog, white workshop manuals, three owner manuals, spiral checklists, maintenance spreadsheet and tablet, black Opala parked behind, warm premium dark garage"
+    }
+  ]
+}
