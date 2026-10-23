@@ -1,5 +1,5 @@
 # O Código do Opala Raiz
 
-Página de vendas estática em HTML, CSS e JavaScript. Publique `dist/` na Vercel, sem build.
+Página de vendas estática. Publicar dist/ na Vercel, sem build.
 
-Cronômetro configurável em `dist/script.js`, oculto até a definição de um prazo real.
+Cronômetro em dist/script.js, oculto até definir um prazo real.
