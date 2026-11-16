@@ -3,5 +3,12 @@
   "framework": null,
   "buildCommand": null,
   "installCommand": null,
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/opala",
+      "destination": "/index.html"
+    }
+  ]
 }
