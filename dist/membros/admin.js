@@ -1,15 +1,38 @@
 'use strict';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const GATEWAY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtbnJyaXNjdmp4aHhrZXJoYmR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1MDk3MzAsImV4cCI6MjExMDA4NTczMH0.MC_gLiNXCocBwAqWWfplKlgPL1S6pZIzvNtD40rLIK8";
-let key=sessionStorage.getItem('classicos-admin')||'',data=null,timer;
-const hash=new URLSearchParams(location.hash.slice(1));if(hash.has('chave')){key=hash.get('chave');sessionStorage.setItem('classicos-admin',key);history.replaceState(null,'',location.pathname)}
+let authSession=null,data=null,timer,refreshTask=null;
+try{authSession=JSON.parse(sessionStorage.getItem('classicos-admin-session')||'null')}catch{}
+sessionStorage.removeItem('classicos-admin');
+if(new URLSearchParams(location.hash.slice(1)).has('chave'))history.replaceState(null,'',location.pathname);
+function saveAuth(session){authSession=session;if(session)sessionStorage.setItem('classicos-admin-session',JSON.stringify(session));else sessionStorage.removeItem('classicos-admin-session')}
 function notice(message){$('#admin-message').textContent=message;$('#admin-message').hidden=false;clearTimeout(timer);timer=setTimeout(()=>$('#admin-message').hidden=true,7000)}
-async function api(action,body={}){const response=await fetch('https://fmnrriscvjxhxkerhbdv.supabase.co/functions/v1/members-api',{method:'POST',headers:{apikey:'sb_publishable_-VR-mc_zw5j9-71tK3G_fg_pyjFx6lF',Authorization:'Bearer '+GATEWAY,'Content-Type':'application/json'},body:JSON.stringify({action,admin_token:key,...body})});const result=await response.json();if(!response.ok)throw new Error(result.error||'Não foi possível concluir.');return result}
-async function load(){try{data=await api('admin_data');sessionStorage.setItem('classicos-admin',key);$('#admin-login').hidden=true;$('#admin-content').hidden=false;$('#admin-exit').hidden=false;render()}catch(e){$('#admin-error').textContent=e.message;$('#admin-login').hidden=false;$('#admin-content').hidden=true;$('#admin-exit').hidden=true;sessionStorage.removeItem('classicos-admin')}}
+async function send(action,body={}){
+ const response=await fetch('https://fmnrriscvjxhxkerhbdv.supabase.co/functions/v1/members-api',{method:'POST',headers:{apikey:'sb_publishable_-VR-mc_zw5j9-71tK3G_fg_pyjFx6lF',Authorization:'Bearer '+GATEWAY,'Content-Type':'application/json'},body:JSON.stringify({action,admin_token:authSession?.access_token,...body})});
+ const result=await response.json();if(!response.ok)throw new Error(result.error||'Não foi possível concluir.');return result;
+}
+async function api(action,body={}){
+ if(!['admin_login','admin_refresh'].includes(action)&&authSession&&authSession.expires_at<Date.now()/1000+60){
+  if(!refreshTask)refreshTask=send('admin_refresh',{refresh_token:authSession.refresh_token}).then(saveAuth).finally(()=>refreshTask=null);
+  await refreshTask;
+ }
+ return send(action,body);
+}
+async function load(){try{data=await api('admin_data');$('#admin-error').textContent='';$('#admin-login').hidden=true;$('#admin-content').hidden=false;$('#admin-exit').hidden=false;render()}catch(e){$('#admin-error').textContent=e.message;$('#admin-login').hidden=false;$('#admin-content').hidden=true;$('#admin-exit').hidden=true;saveAuth(null)}}
+
 function render(){const productNames=Object.fromEntries(data.products.map(p=>[p.id,p.title]));$('#stat-members').textContent=data.members.length;$('#stat-access').textContent=data.access.filter(a=>a.active).length;$('#stat-invites').textContent=data.invites.filter(a=>a.active).length;const options=data.products.filter(p=>p.status==='available').map(p=>`<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('');$('#access-product').innerHTML=options;$('#invite-product').innerHTML=options;renderMembers();$('#invite-rows').innerHTML=data.invites.map(i=>`<tr><td>${esc(productNames[i.product_id])}</td><td>${new Date(i.created_at).toLocaleDateString('pt-BR')}</td><td>${i.active?'Ativo':'Desativado'}</td><td><button class="small-btn" data-invite="${esc(i.id)}">${i.active?'Desativar':'Reativar'}</button></td></tr>`).join('')||'<tr><td colspan="4">Nenhum convite criado.</td></tr>';document.querySelectorAll('[data-invite]').forEach(b=>b.addEventListener('click',async()=>{b.disabled=true;try{const i=data.invites.find(x=>x.id===b.dataset.invite);await api('admin_invite_toggle',{id:i.id,active:!i.active});await load();notice('Convite atualizado.')}catch(e){notice(e.message);b.disabled=false}}))}
 function renderMembers(){const search=$('#admin-search').value.toLowerCase().trim();const productNames=Object.fromEntries(data.products.map(p=>[p.id,p.title]));$('#member-rows').innerHTML=data.members.filter(m=>m.email.toLowerCase().includes(search)).map(m=>{const access=data.access.filter(a=>a.member_id===m.id&&a.active);return `<tr><td>${esc(m.email)}</td><td>${access.map(a=>`<small>${esc(productNames[a.product_id])}</small>`).join('<br>')||'Sem produtos'}</td><td>${new Date(m.created_at).toLocaleDateString('pt-BR')}</td><td>${m.active?'Ativa':'Bloqueada'}</td><td><button class="small-btn ${m.active?'danger':''}" data-member="${esc(m.id)}">${m.active?'Bloquear conta':'Reativar conta'}</button></td></tr>`}).join('')||'<tr><td colspan="5">Nenhum cliente encontrado.</td></tr>';document.querySelectorAll('[data-member]').forEach(b=>b.addEventListener('click',async()=>{b.disabled=true;try{const m=data.members.find(x=>x.id===b.dataset.member);await api('admin_member',{member_id:m.id,active:!m.active});await load();notice('Conta atualizada.')}catch(e){notice(e.message);b.disabled=false}}))}
-$('#admin-login-form').addEventListener('submit',async e=>{e.preventDefault();key=$('#admin-key').value.trim();e.submitter.disabled=true;await load();e.submitter.disabled=false;$('#admin-key').value=''});
+$('#admin-login-form').addEventListener('submit',async e=>{
+ e.preventDefault();e.submitter.disabled=true;$('#admin-error').textContent='';
+ try{const session=await api('admin_login',{email:$('#admin-email').value.trim(),password:$('#admin-password').value});saveAuth(session);await load()}catch(error){$('#admin-error').textContent=error.message}finally{e.submitter.disabled=false;$('#admin-password').value=''}
+});
 $('#access-form').addEventListener('submit',async e=>{e.preventDefault();e.submitter.disabled=true;try{await api('admin_access',{email:$('#client-email').value,product_id:$('#access-product').value,active:e.submitter.value==='true'});await load();notice(e.submitter.value==='true'?'Produto liberado para o cliente.':'Produto bloqueado para o cliente.')}catch(error){notice(error.message)}finally{e.submitter.disabled=false}});
 $('#invite-form').addEventListener('submit',async e=>{e.preventDefault();e.submitter.disabled=true;try{const result=await api('admin_invite_create',{product_id:$('#invite-product').value});$('#invite-link').value=result.url;$('#new-invite').hidden=false;await load();notice('Convite criado. Copie o link e guarde em local seguro.')}catch(error){notice(error.message)}finally{e.submitter.disabled=false}});
 $('#copy-invite').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('#invite-link').value);notice('Link copiado!')}catch{$('#invite-link').select();notice('Selecione e copie o link exibido.')}});
-$('#admin-search').addEventListener('input',renderMembers);$('#refresh-admin').addEventListener('click',load);$('#admin-exit').addEventListener('click',()=>{key='';data=null;sessionStorage.removeItem('classicos-admin');$('#admin-content').hidden=true;$('#admin-login').hidden=false;$('#admin-exit').hidden=true;$('#new-invite').hidden=true;$('#invite-link').value=''});if(key)load();
+$('#admin-search').addEventListener('input',renderMembers);$('#refresh-admin').addEventListener('click',load);
+$('#admin-exit').addEventListener('click',async()=>{
+ $('#admin-exit').disabled=true;
+ try{await api('admin_logout')}catch{}
+ saveAuth(null);data=null;$('#admin-content').hidden=true;$('#admin-login').hidden=false;$('#admin-exit').hidden=true;$('#admin-exit').disabled=false;$('#new-invite').hidden=true;$('#invite-link').value='';$('#member-rows').innerHTML='';$('#invite-rows').innerHTML='';$('#admin-error').textContent='';
+});
+if(authSession)load();

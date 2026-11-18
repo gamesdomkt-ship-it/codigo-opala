@@ -19,14 +19,45 @@ async function current(raw:string){
  const owned=access.filter((x:{product_id:string;source:string})=>x.source==='manual'||rows[0].scopes.includes(x.product_id)).map((x:{product_id:string})=>x.product_id);
  return {...members[0],owned,scopes:rows[0].scopes};
 }
-async function admin(raw:string){if(!raw||raw.length>200)return false;const rows=await db('membership_admin_keys?token_hash=eq.'+await hash(raw)+'&active=eq.true&select=active');return rows.length===1;}
+const adminEmail='gamesdomkt@gmail.com';
+const isAdmin=(user:{email?:string;app_metadata?:{membership_admin?:boolean}})=>user?.email?.toLowerCase()===adminEmail&&user?.app_metadata?.membership_admin===true;
+async function admin(raw:string){
+ if(typeof raw!=='string'||!raw||raw.length>5000)return false;
+ const response=await fetch(base+'/auth/v1/user',{headers:{apikey:service,Authorization:'Bearer '+raw}});
+ if(!response.ok)return false;
+ return isAdmin(await response.json());
+}
+async function authSession(path:string,body:unknown){
+ const response=await fetch(base+'/auth/v1/'+path,{method:'POST',headers:{apikey:service,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ if(!response.ok)return null;
+ const data=await response.json();
+ if(!isAdmin(data.user))return null;
+ return {access_token:data.access_token,refresh_token:data.refresh_token,expires_in:data.expires_in,expires_at:Math.floor(Date.now()/1000)+data.expires_in,user:{email:data.user.email}};
+}
 Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response(null,{headers:cors});
  if(req.method!=='POST')return json({error:'Método não permitido.'},405);
  try{
  const b=await req.json();const action=String(b.action||'');
+ if(action==='admin_login'){
+  const email=String(b.email||'').trim().toLowerCase();
+  if(email!==adminEmail||typeof b.password!=='string'||b.password.length<1||b.password.length>128)return json({error:'E-mail ou senha incorretos.'},401);
+  const session=await authSession('token?grant_type=password',{email,password:b.password});
+  if(!session)return json({error:'E-mail ou senha incorretos.'},401);
+  return json(session);
+ }
+ if(action==='admin_refresh'){
+  if(typeof b.refresh_token!=='string'||!b.refresh_token||b.refresh_token.length>1000)return json({error:'Entre novamente no painel.'},401);
+  const session=await authSession('token?grant_type=refresh_token',{refresh_token:b.refresh_token});
+  if(!session)return json({error:'Sua sessão expirou. Entre novamente no painel.'},401);
+  return json(session);
+ }
  if(action.startsWith('admin_')){
   if(!await admin(b.admin_token))return json({error:'Acesso administrativo não autorizado.'},401);
+  if(action==='admin_logout'){
+   await fetch(base+'/auth/v1/logout?scope=local',{method:'POST',headers:{apikey:service,Authorization:'Bearer '+b.admin_token}});
+   return json({ok:true});
+  }
   if(action==='admin_data'){const [members,access,invites,products]=await Promise.all([db('members?order=created_at.desc&select=id,email,active,created_at'),db('member_access?select=member_id,product_id,active,source'),db('membership_invites?order=created_at.desc&select=id,product_id,active,created_at'),db('products?order=position')]);return json({members,access,invites,products});}
   if(action==='admin_member'){if(typeof b.active!=='boolean')return json({error:'Informe o estado do acesso.'},400);await db('members?id=eq.'+value(b.member_id),{method:'PATCH',body:{active:b.active}});if(!b.active)await db('member_sessions?member_id=eq.'+value(b.member_id),{method:'PATCH',body:{active:false}});return json({ok:true});}
   if(action==='admin_access'){
