@@ -9,6 +9,18 @@
     {
       "source": "/opala",
       "destination": "/index.html"
+    },
+    {
+      "source": "/area-de-membros/admin",
+      "destination": "/membros/admin.html"
+    },
+    {
+      "source": "/area-de-membros",
+      "destination": "/membros/index.html"
+    },
+    {
+      "source": "/area-de-membros/:path*",
+      "destination": "/membros/index.html"
     }
   ]
 }

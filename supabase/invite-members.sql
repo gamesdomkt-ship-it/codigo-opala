@@ -1,0 +1,18 @@
+create table public.members (id uuid primary key default gen_random_uuid(),email text not null unique check(email=lower(email)),active boolean not null default true,created_at timestamptz not null default now());
+create table public.member_access (member_id uuid not null references public.members(id) on delete cascade,product_id text not null references public.products(id),active boolean not null default true,source text not null default 'invite',created_at timestamptz not null default now(),primary key(member_id,product_id));
+create table public.member_sessions (token_hash text primary key,member_id uuid not null references public.members(id) on delete cascade,scopes text[] not null default '{}',active boolean not null default true,expires_at timestamptz not null,created_at timestamptz not null default now());
+create table public.membership_invites (id uuid primary key default gen_random_uuid(),token_hash text not null unique,product_id text not null references public.products(id),active boolean not null default true,created_at timestamptz not null default now());
+create table public.membership_admin_keys (token_hash text primary key,active boolean not null default true,created_at timestamptz not null default now());
+create table public.member_progress (member_id uuid not null references public.members(id) on delete cascade,lesson_id text not null references public.lessons(id),completed boolean not null default true,updated_at timestamptz not null default now(),primary key(member_id,lesson_id));
+alter table public.members enable row level security;
+alter table public.member_access enable row level security;
+alter table public.member_sessions enable row level security;
+alter table public.membership_invites enable row level security;
+alter table public.membership_admin_keys enable row level security;
+alter table public.member_progress enable row level security;
+revoke all on public.members,public.member_access,public.member_sessions,public.membership_invites,public.membership_admin_keys,public.member_progress from anon,authenticated;
+grant all on public.members,public.member_access,public.member_sessions,public.membership_invites,public.membership_admin_keys,public.member_progress to service_role;
+create index member_access_product_idx on public.member_access(product_id);
+create index member_sessions_member_idx on public.member_sessions(member_id);
+create index member_progress_lesson_idx on public.member_progress(lesson_id);
+insert into public.membership_invites(token_hash,product_id,active) select token_hash,product_id,active from private.enrollment_links on conflict(token_hash) do nothing;
