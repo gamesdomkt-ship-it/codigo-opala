@@ -102,11 +102,12 @@ Deno.serve(async req=>{
  if(action==='logout'){await db('member_sessions?token_hash=eq.'+await hash(b.session_token),{method:'PATCH',body:{active:false}});return json({ok:true});}
  if(action==='contents'){
   if(!member.owned.includes(b.product_id))return json({error:'Produto não liberado para seu e-mail.'},403);
-  const [modules,lessons,progress]=await Promise.all([db('modules?product_id=eq.'+value(b.product_id)+'&order=position'),db('lessons?product_id=eq.'+value(b.product_id)+'&order=position&select=id,module_id,product_id,title,description,format,position'),db('member_progress?member_id=eq.'+member.id+'&select=lesson_id,completed')]);return json({modules,lessons,progress});
+  const [modules,lessons,progress]=await Promise.all([db('modules?product_id=eq.'+value(b.product_id)+'&order=position'),db('lessons?product_id=eq.'+value(b.product_id)+'&order=position&select=id,module_id,product_id,title,description,format,position,drive_url'),db('member_progress?member_id=eq.'+member.id+'&select=lesson_id,completed')]);return json({modules,lessons,progress});
  }
  if(action==='file'||action==='progress'){
   const [l]=await db('lessons?id=eq.'+value(b.lesson_id));if(!l||!member.owned.includes(l.product_id))return json({error:'Material não liberado para seu e-mail.'},403);
   if(action==='progress'){await db('member_progress?on_conflict=member_id,lesson_id',{method:'POST',body:{member_id:member.id,lesson_id:l.id,completed:!!b.completed,updated_at:new Date().toISOString()},prefer:'resolution=merge-duplicates,return=minimal'});return json({ok:true});}
+  if(!b.download&&l.drive_url)return json({url:l.drive_url,viewer:'google_drive',title:l.title,format:l.format});
   const result=await fetch(base+'/storage/v1/object/sign/classicos-acervo/'+l.storage_path,{method:'POST',headers:{apikey:service,Authorization:'Bearer '+service,'Content-Type':'application/json'},body:JSON.stringify({expiresIn:300})});
   if(!result.ok)return json({error:'Este material está sendo preparado. Tente novamente em breve.'},404);
   const signed=await result.json();let url=base+'/storage/v1'+signed.signedURL;if(b.download)url+='&download='+encodeURIComponent(l.title+'.'+l.format);return json({url,title:l.title,format:l.format});
