@@ -21,8 +21,9 @@ Supabase: `fmnrriscvjxhxkerhbdv`. Catálogo público; dados de membros protegido
 `members-api.ts` é a função implantada, com verificação JWT do gateway e autorização própria por convite, sessão ou chave administrativa. Apenas o backend usa a chave de serviço do ambiente Supabase.
 O bucket `classicos-acervo` é privado. A consulta e o download exigem sessão válida e produto liberado; os links assinados duram 5 minutos. PDFs têm consulta no navegador; XLSX é entregue no formato original editável para consulta no aplicativo de planilhas do dispositivo.
 
-## Estado e pendências
-Catálogo, banco de dados, função de acesso e interfaces estão implementados. A criação da primeira chave administrativa foi bloqueada pela revisão automática e depende de autorização explícita do titular. Nenhuma chave administrativa está ativa.
-A transferência dos 16 arquivos do Drive depende desse acesso administrativo. O importador exige a chave válida, aceita apenas fontes temporárias do ambiente de arquivos, limita os destinos aos materiais cadastrados e grava somente no bucket privado. Os arquivos de origem não foram publicados no repositório ou no frontend.
+## Estado da implantação
+Catálogo, banco de dados, função de acesso e interfaces estão publicados. A primeira chave administrativa foi ativada após autorização explícita do titular; somente seu hash está armazenado na base.
+Os 16 arquivos originais foram transferidos para o bucket privado: 124.575.069 bytes no total, com consulta de PDFs no navegador e download dos arquivos originais. O importador exige a chave administrativa válida, aceita apenas fontes temporárias do ambiente de arquivos, limita os destinos aos materiais cadastrados e grava somente no bucket privado. Links de origem e chaves privadas não foram publicados no repositório ou no frontend.
+Verificações concluídas: cadastro pelo convite com apenas e-mail; liberação exclusiva do produto do convite; progresso persistido; encerramento de sessão; acesso administrativo autenticado; leitura de PDF privado por URL assinada; presença dos 16 arquivos em bucket não público.
 O schema inicial `schema.sql` e a extensão `invite-members.sql` já foram aplicados. Não reaplicar os scripts em uma base criada.
 O fluxo anterior de Supabase Auth não é utilizado nesta versão; SMTP e OAuth são desnecessários para os clientes.
