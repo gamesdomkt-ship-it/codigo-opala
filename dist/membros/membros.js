@@ -23,10 +23,26 @@ function renderProducts(){const query=$('#product-search').value.trim().toLocale
  $('#products').innerHTML=list.map(p=>{const access=owned.includes(p.id),soon=p.status==='soon';return `<article class="product-card"><div class="cover"><span class="badge ${soon?'soon':access?'':'locked'}">${soon?'EM BREVE':access?'✓ ACESSO LIBERADO':'♧ ACESSO BLOQUEADO'}</span>${p.image?`<img src="${esc(p.image)}" alt="Acervo digital O Código do Opala Raiz" loading="lazy">`:`<div class="cover-art ${p.id==='antiferrugem'?'gold':''}"><span class="edition">CÓDIGO DOS CLÁSSICOS BR</span><strong class="model">${p.id==='antiferrugem'?'ANTIFERRUGEM':p.id==='fusca-raiz'?'FUSCA':'CHEVETTE'}</strong><span class="line"></span><span class="year">${p.id==='antiferrugem'?'PRESERVE SEU CLÁSSICO':'UM CLÁSSICO. UMA HISTÓRIA.'}</span></div>`}</div><div class="card-body"><div class="card-meta">${esc(p.subtitle)}</div><h3>${esc(p.title)}</h3><p>${esc(p.description)}</p><div class="card-bottom"><small>${p.id==='opala-raiz'?'6 módulos • 16 materiais':p.id==='antiferrugem'?'Acervo complementar':'Nova coleção'}</small><button class="card-action" data-product="${esc(p.id)}">${soon?'Conhecer':access?'Acessar produto':'Liberar acesso'} <span>↗</span></button></div></div></article>`}).join('');
  document.querySelectorAll('[data-product]').forEach(b=>b.addEventListener('click',()=>openProduct(b.dataset.product)));
 }
-function showAuth(){
- $('#auth-title').textContent=pending?'Sua garagem está pronta.':'Entre com seu convite.';
- $('#auth-description').textContent=pending?'Digite seu e-mail para liberar o produto deste convite. Você não precisa de senha.':'Para entrar, abra o link de convite recebido após a compra. Seu acesso fica salvo neste dispositivo.';
- $('#email-form').hidden=!pending;$('#auth-message').textContent='';$('#auth-dialog').showModal();
+async function showAuth(){
+ const invite=pending;
+ const button=$('#email-form button[type="submit"]');
+ $('#auth-title').textContent=invite?'Identificando seu produto…':'Entre com seu convite.';
+ $('#auth-description').textContent=invite?'Aguarde um instante.':'Para entrar, abra o link de convite recebido após a compra. Seu acesso fica salvo neste dispositivo.';
+ $('#email-form').hidden=true;$('#auth-message').textContent='';button.disabled=!!invite;
+ if(!$('#auth-dialog').open)$('#auth-dialog').showModal();
+ if(!invite)return;
+ try{
+  const data=await memberApi('invite_info',{invite});
+  if(pending!==invite)return;
+  $('#auth-title').textContent=data.product.title;
+  $('#auth-description').textContent='Digite seu e-mail abaixo para acessar este produto. Você não precisa de senha.';
+  $('#email-form').hidden=false;
+  button.innerHTML='Acessar produto <span>→</span>';
+ }catch(error){
+  if(pending!==invite)return;
+  $('#auth-title').textContent='Convite indisponível.';
+  $('#auth-description').textContent=error.message;
+ }finally{if(pending===invite)button.disabled=false;}
 }
 async function loadOwned(){if(!session?.session_token){saveSession(null);owned=[];return}try{const data=await memberApi('state');owned=data.owned;session.user=data.member;saveSession(session)}catch(e){saveSession(null);owned=[];toast(e.message)}}
 async function redeem(){if(!pending||!session)return;try{const data=await memberApi('enroll',{invite:pending,email:session.user.email});saveSession({session_token:data.session_token,user:data.member});pending='';sessionStorage.removeItem('classicos-release');await loadOwned();toast('Seu produto foi liberado!');await openProduct(data.product_id)}catch(e){toast(e.message)}}
